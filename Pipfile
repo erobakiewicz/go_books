@@ -9,6 +9,7 @@ djangorestframework = "*"
 psycopg2-binary = "*"
 flake8 = "*"
 django-environ = "*"
+whitenoise = "*"
 
 [dev-packages]
 
