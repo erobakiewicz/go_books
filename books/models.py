@@ -4,7 +4,7 @@ from django.db import models
 class Book(models.Model):
     title = models.CharField("Title", max_length=250)
     author = models.CharField("Author", max_length=250)
-    date_published = models.DateTimeField("Date published")
+    date_published = models.DateField("Date published")
     ISBN = models.CharField("ISBN number", max_length=25)
     pages = models.PositiveSmallIntegerField("Pages")
     cover_url = models.URLField("Cover url")
