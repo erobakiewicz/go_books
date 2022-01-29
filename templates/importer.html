@@ -1,0 +1,9 @@
+<form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Send message">
+</form>
+{% for book in results %}
+{{ book }}
+    ++++++++++++++++
+    <br>
+{% endfor %}
