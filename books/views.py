@@ -1,7 +1,11 @@
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import ListView, CreateView, FormView
-from rest_framework.viewsets import ModelViewSet
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
+from rest_framework.filters import SearchFilter
+from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.response import Response
 
 from books.api.google_api import GoogleBooksAPIConnector
 from books.api.serializers import BookSerializer
@@ -21,9 +25,23 @@ class BookCreateView(CreateView):
         return reverse("books:book_list")
 
 
-class BookViewSet(ModelViewSet):
+class AddBookAPIView(CreateAPIView):
+    serializer_class = BookSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+
+class ListBooksViewSet(ListAPIView):
     serializer_class = BookSerializer
     queryset = Book.objects.all()
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ["title", "author", "date_published", "ISBN", "pages", "cover_url", "language"]
+    search_fields = ["title", "author", "date_published", "ISBN", "pages", "cover_url", "language"]
 
 
 class ImportBooks(FormView):
@@ -32,27 +50,32 @@ class ImportBooks(FormView):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.results = None
+        self.imported_books = []
 
     def get_success_url(self):
         return reverse("books:import")
+
+    def get_context_data(self, **kwargs):
+        return {
+            'imported_books': self.imported_books,
+            **super().get_context_data(**kwargs)
+        }
 
     def post(self, request, *args, **kwargs):
         form = self.get_form()
         if form.is_valid():
             data = self.get_form_kwargs().get("data")
             google_api = GoogleBooksAPIConnector(data)
-            results = google_api.get_books_list()
-            self.results = self.get_formatted_results(results)
+            results = self.get_formatted_results(google_api.get_books_list())
+            for obj in results:
+                serializer = BookSerializer(data=obj)
+                serializer.is_valid(raise_exception=True)
+                imported_book, created = Book.objects.get_or_create(**serializer.validated_data)
+                if created:
+                    self.imported_books.append(imported_book)
             return render(request, "importer.html", self.get_context_data())
         else:
             return self.form_invalid(form)
-
-    def get_context_data(self, **kwargs):
-        return {
-            'results': self.results,
-            **super().get_context_data(**kwargs)
-        }
 
     def get_formatted_results(self, results):
         if results:
@@ -62,18 +85,19 @@ class ImportBooks(FormView):
     def get_book_dict(self, item):
         book_info = item.get('volumeInfo')
         return {
+            "id": item.get("id"),
             "title": book_info.get("title", ''),
             "author": self.get_from_list(book_info.get("authors", '')),
-            "date_published": book_info.get("publishedDate", ''),
+            "date_published": book_info.get("publishedDate", None),
             "ISBN": self.get_isbn(book_info.get("industryIdentifiers", '')),
-            "pages": book_info.get("pageCount", ''),
+            "pages": int(book_info.get("pageCount", 0)),
             "cover_url": self.get_img_link(book_info.get("imageLinks", None)),
             "language": book_info.get("language", ''),
         }
 
     @staticmethod
     def get_from_list(info_list):
-        return ','.join([item for item in info_list])
+        return ', '.join([item for item in info_list])
 
     @staticmethod
     def get_isbn(identifiers_list):

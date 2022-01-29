@@ -12,5 +12,4 @@ class GoogleBooksAPIConnector:
     def get_books_list(self):
         response = requests.get(
             url=f'{GOOGLE_API_BASE_URL}{self.key_word}{self.searched_phrase}')
-        print(response.json().get("items"))
         return response.json().get("items")

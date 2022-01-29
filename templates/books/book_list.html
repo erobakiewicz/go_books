@@ -5,6 +5,9 @@
     <title>Title</title>
 </head>
 <body>
-{{ object_list }}
+{% for book in object_list %}
+{{ book.title }}
+    <br>
+{% endfor %}
 </body>
 </html>

@@ -10,6 +10,7 @@ psycopg2-binary = "*"
 flake8 = "*"
 django-environ = "*"
 requests = "*"
+django-filter = "*"
 
 [dev-packages]
 

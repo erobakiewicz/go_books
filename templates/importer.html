@@ -1,9 +1,12 @@
-<form method="post">{% csrf_token %}
+<form method="post" name="search_books">
+    {% csrf_token %}
     {{ form.as_p }}
-    <input type="submit" value="Send message">
+    <input type="submit" value="search">
 </form>
-{% for book in results %}
-{{ book }}
-    ++++++++++++++++
+{% for book in imported_books %}
+
+    {{ book.title }}
+        {{ book.author }}
     <br>
 {% endfor %}
+
