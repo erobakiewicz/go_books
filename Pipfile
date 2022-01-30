@@ -11,6 +11,8 @@ flake8 = "*"
 django-environ = "*"
 requests = "*"
 django-filter = "*"
+whitenoise = "*"
+factory-boy = "*"
 
 [dev-packages]
 

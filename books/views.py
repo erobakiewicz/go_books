@@ -5,10 +5,8 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import ListView, CreateView, FormView
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import CreateAPIView, ListAPIView
-from rest_framework.response import Response
 
 from books.api.google_api import GoogleBooksAPIConnector
 from books.api.serializers import BookSerializer
@@ -22,7 +20,6 @@ class BookListView(ListView):
 
     def get_queryset(self):
         query = {key: value for (key, value) in self.request.GET.items() if value}
-        print(query)
         form = self.form_class(query)
         if form.is_valid() and query:
             object_list = self.model.objects.all()
@@ -57,13 +54,6 @@ class BookCreateView(CreateView):
 class AddBookAPIView(CreateAPIView):
     serializer_class = BookSerializer
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
 
 class ListBooksViewSet(ListAPIView):
     serializer_class = BookSerializer
@@ -97,7 +87,6 @@ class ImportBooks(FormView):
             google_api = GoogleBooksAPIConnector(data)
             results = self.get_formatted_results(google_api.get_books_list())
             for obj in results:
-                print(obj)
                 serializer = BookSerializer(data=obj)
                 serializer.is_valid(raise_exception=True)
                 imported_book, created = Book.objects.get_or_create(**serializer.validated_data)
@@ -156,5 +145,6 @@ class ImportBooks(FormView):
 
     @staticmethod
     def get_clean_date(date):
-        if re.match(r'^\d{4}-+\d{2}-+\d{2}', date):
-            return date
+        if date:
+            if re.match(r'^\d{4}-+\d{2}-+\d{2}', date):
+                return date

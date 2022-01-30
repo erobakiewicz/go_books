@@ -1,27 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'index.html' %}
+{% load static %}
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Books List</title>
 </head>
 <body>
-<form method="get" name="search_books">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="search">
-</form>
+{% block content %}
+    {% load static %}
+    <form method="get" name="search_books">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="search">
+    </form>
 
-{% for book in object_list %}
-    {{ book.title }}
-    {{ book.author }}    <br>
-    DATE {{ book.date_published }}
-    {{ book.ISBN }}
-    {{ book.cover_url }}
-    {{ book.language }}
-    <br>
+    {% for book in object_list %}
+        {{ book.title }}
+        {{ book.author }}    <br>
+        DATE {{ book.date_published }}
+        {{ book.ISBN }}
+        {{ book.cover_url }}
+        {{ book.language }}
         <br>
-{% endfor %}
+        <br>
+    {% endfor %}
 
-
+{% endblock content %}
 </body>
-</html>
