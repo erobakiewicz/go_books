@@ -16,5 +16,11 @@ class BookImportForm(forms.Form):
 class BookSearchForm(forms.Form):
     title = forms.CharField(required=False)
     author = forms.CharField(required=False)
-    date_published_start = forms.DateField(required=False, widget=forms.widgets.DateInput(attrs={'type': 'date'}))
-    date_published_end = forms.DateField(required=False, widget=forms.widgets.DateInput(attrs={'type': 'date'}))
+    date_published_start = forms.DateField(
+        required=False,
+        widget=forms.widgets.DateInput(attrs={'type': 'date'})
+    )
+    date_published_end = forms.DateField(
+        required=False,
+        widget=forms.widgets.DateInput(attrs={'type': 'date'})
+    )

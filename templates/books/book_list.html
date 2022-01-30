@@ -5,7 +5,11 @@
     <title>Title</title>
 </head>
 <body>
-
+<form method="get" name="search_books">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="search">
+</form>
 
 {% for book in object_list %}
     {{ book.title }}
@@ -18,10 +22,6 @@
         <br>
 {% endfor %}
 
-<form method="get" name="search_books">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="search">
-</form>
+
 </body>
 </html>

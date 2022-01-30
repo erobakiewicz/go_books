@@ -21,19 +21,20 @@ class BookListView(ListView):
     form_class = BookSearchForm
 
     def get_queryset(self):
-        form = self.form_class(self.request.GET)
-        if form.is_valid():
-            object_list = self.model.objects.filter(
-                Q(title__icontains=form.cleaned_data.get("title")) &
-                Q(author__icontains=form.cleaned_data.get("author"))
-            )
-            if not self.model.objects.filter(date_published__isnull=True):
-                object_list = self.model.objects.filter(
-                    Q(title__icontains=form.cleaned_data.get("title")) &
-                    Q(author__icontains=form.cleaned_data.get("author")) &
-                    Q(date_published__gte=form.cleaned_data.get("date_published_start")) &
-                    Q(date_published__lte=form.cleaned_data.get("date_published_end"))
-                )
+        query = {key: value for (key, value) in self.request.GET.items() if value}
+        print(query)
+        form = self.form_class(query)
+        if form.is_valid() and query:
+            object_list = self.model.objects.all()
+            if query.get("title"):
+                object_list = object_list.filter(Q(title__icontains=form.cleaned_data.get("title")))
+            if query.get("author"):
+                object_list = object_list.filter(Q(author__icontains=form.cleaned_data.get("author")))
+            if query.get("date_published_start"):
+                object_list = object_list.filter(Q(date_published__gt=form.cleaned_data.get("date_published_start")))
+            if query.get("date_published_end"):
+                object_list = object_list.filter(Q(date_published__lt=form.cleaned_data.get("date_published_end")))
+            return object_list
         else:
             object_list = self.model.objects.all()
         return object_list
@@ -96,6 +97,7 @@ class ImportBooks(FormView):
             google_api = GoogleBooksAPIConnector(data)
             results = self.get_formatted_results(google_api.get_books_list())
             for obj in results:
+                print(obj)
                 serializer = BookSerializer(data=obj)
                 serializer.is_valid(raise_exception=True)
                 imported_book, created = Book.objects.get_or_create(**serializer.validated_data)
@@ -107,25 +109,32 @@ class ImportBooks(FormView):
 
     def get_formatted_results(self, results):
         if results:
-            return [self.get_book_dict(item) for item in results]
+            return [self.get_book_dict(item) for item in results if self.get_book_dict(item)]
         return None
 
     def get_book_dict(self, item):
         book_info = item.get('volumeInfo')
-        return {
-            "id": item.get("id"),
-            "title": book_info.get("title", ''),
-            "author": self.get_from_list(book_info.get("authors", '')),
-            "date_published": self.get_clean_date(book_info.get("publishedDate")),
-            "ISBN": self.get_isbn(book_info.get("industryIdentifiers", '')),
-            "pages": int(book_info.get("pageCount", 0)),
-            "cover_url": self.get_img_link(book_info.get("imageLinks", None)),
-            "language": book_info.get("language", ''),
-        }
+        if all([
+            book_info.get("title"),
+            self.get_from_list(book_info.get("authors")),
+            self.get_clean_date(book_info.get("publishedDate"))
+        ]):
+            return {
+                "id": item.get("id"),
+                "title": book_info.get("title"),
+                "author": self.get_from_list(book_info.get("authors")),
+                "date_published": self.get_clean_date(book_info.get("publishedDate")),
+                "ISBN": self.get_isbn(book_info.get("industryIdentifiers", '')),
+                "pages": int(book_info.get("pageCount", 0)),
+                "cover_url": self.get_img_link(book_info.get("imageLinks", None)),
+                "language": book_info.get("language", ''),
+            }
 
     @staticmethod
-    def get_from_list(info_list):
-        return ', '.join([item for item in info_list])
+    def get_from_list(authors):
+        if isinstance(authors, list):
+            return ', '.join([item for item in authors])
+        return authors
 
     @staticmethod
     def get_isbn(identifiers_list):
