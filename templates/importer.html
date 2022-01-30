@@ -3,10 +3,15 @@
     {{ form.as_p }}
     <input type="submit" value="search">
 </form>
+<h1>Imported books:</h1>
 {% for book in imported_books %}
 
     {{ book.title }}
-        {{ book.author }}
+    {{ book.author }}
+    {{ book.date_published }}
+    {{ book.ISBN }}
+    {{ book.cover_url }}
+    {{ book.language }}
     <br>
 {% endfor %}
 

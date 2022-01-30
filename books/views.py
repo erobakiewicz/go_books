@@ -1,3 +1,6 @@
+import re
+
+from django.db.models import Q
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.generic import ListView, CreateView, FormView
@@ -9,12 +12,37 @@ from rest_framework.response import Response
 
 from books.api.google_api import GoogleBooksAPIConnector
 from books.api.serializers import BookSerializer
-from books.forms import BookImportForm
+from books.forms import BookImportForm, BookSearchForm
 from books.models import Book
 
 
 class BookListView(ListView):
-    queryset = Book.objects.all()
+    model = Book
+    form_class = BookSearchForm
+
+    def get_queryset(self):
+        form = self.form_class(self.request.GET)
+        if form.is_valid():
+            object_list = self.model.objects.filter(
+                Q(title__icontains=form.cleaned_data.get("title")) &
+                Q(author__icontains=form.cleaned_data.get("author"))
+            )
+            if not self.model.objects.filter(date_published__isnull=True):
+                object_list = self.model.objects.filter(
+                    Q(title__icontains=form.cleaned_data.get("title")) &
+                    Q(author__icontains=form.cleaned_data.get("author")) &
+                    Q(date_published__gte=form.cleaned_data.get("date_published_start")) &
+                    Q(date_published__lte=form.cleaned_data.get("date_published_end"))
+                )
+        else:
+            object_list = self.model.objects.all()
+        return object_list
+
+    def get_context_data(self, **kwargs):
+        return {
+            'form': self.form_class,
+            **super().get_context_data(**kwargs)
+        }
 
 
 class BookCreateView(CreateView):
@@ -88,7 +116,7 @@ class ImportBooks(FormView):
             "id": item.get("id"),
             "title": book_info.get("title", ''),
             "author": self.get_from_list(book_info.get("authors", '')),
-            "date_published": book_info.get("publishedDate", None),
+            "date_published": self.get_clean_date(book_info.get("publishedDate")),
             "ISBN": self.get_isbn(book_info.get("industryIdentifiers", '')),
             "pages": int(book_info.get("pageCount", 0)),
             "cover_url": self.get_img_link(book_info.get("imageLinks", None)),
@@ -116,3 +144,8 @@ class ImportBooks(FormView):
             else:
                 return None
         return None
+
+    @staticmethod
+    def get_clean_date(date):
+        if re.match(r'^\d{4}-+\d{2}-+\d{2}', date):
+            return date

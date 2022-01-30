@@ -5,9 +5,23 @@
     <title>Title</title>
 </head>
 <body>
+
+
 {% for book in object_list %}
-{{ book.title }}
+    {{ book.title }}
+    {{ book.author }}    <br>
+    DATE {{ book.date_published }}
+    {{ book.ISBN }}
+    {{ book.cover_url }}
+    {{ book.language }}
     <br>
+        <br>
 {% endfor %}
+
+<form method="get" name="search_books">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="search">
+</form>
 </body>
 </html>
