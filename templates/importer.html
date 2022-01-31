@@ -1,17 +1,32 @@
-<form method="post" name="search_books">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="search">
-</form>
-<h1>Imported books:</h1>
-{% for book in imported_books %}
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
 
-    {{ book.title }}
-    {{ book.author }}
-    {{ book.date_published }}
-    {{ book.ISBN }}
-    {{ book.cover_url }}
-    {{ book.language }}
-    <br>
-{% endfor %}
+{% block content %}
+    <form method="post" name="search_books" novalidate>
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-6">
+                {{ form|crispy }}
+                <input type="submit" value="import" class="btn btn-primary">
+            </div>
+        </div>
+    </form>
 
+    <h1 class="list-group-item active">Imported books:</h1>
+    <ul class="list-group">
+        {% for book in imported_books %}
+            <li class="list-group-item">
+                <ul class="list-group list-group-horizontal-md">
+                    <li class="list-group-item active">Title: {{ book.title }}</li>
+                    <li class="list-group-item">Author: {{ book.author }}</li>
+                    <li class="list-group-item">Date published: {{ book.date_published }}</li>
+                    <li class="list-group-item">ISBN: {{ book.ISBN }}</li>
+                    <li class="list-group-item">Language: {{ book.language }}</li>
+                    <li class="list-group-item"><img src="{{ book.cover_url }}" alt="no cover"></li>
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+
+{% endblock content %}
