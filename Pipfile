@@ -13,6 +13,7 @@ requests = "*"
 django-filter = "*"
 whitenoise = "*"
 factory-boy = "*"
+django-crispy-forms = "*"
 
 [dev-packages]
 

@@ -1,5 +1,7 @@
-{% extends 'index.html' %}
+{% extends 'base.html' %}
+{% load crispy_forms_filters %}
 {% load static %}
+{% load crispy_forms_tags %}
 <head>
     <meta charset="UTF-8">
     <title>Books List</title>
@@ -7,10 +9,14 @@
 <body>
 {% block content %}
     {% load static %}
-    <form method="get" name="search_books">
+    <form method="get" name="search_books" class="uniForm">
         {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" value="search">
+        <div class="row">
+      <div class="col-6">
+        {{ form|crispy }}
+      </div>
+      </div>
+        <input type="submit" value="search" class="btn btn-default">
     </form>
 
     {% for book in object_list %}
