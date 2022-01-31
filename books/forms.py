@@ -1,6 +1,4 @@
 from django import forms
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit
 
 KEY_WORDS = (
     ("intitle:", "title"),
@@ -11,13 +9,11 @@ KEY_WORDS = (
 
 
 class BookImportForm(forms.Form):
-
     searched_phrase = forms.CharField(label="What are you looking for?")
     key_word = forms.ChoiceField(choices=KEY_WORDS, label='Choose: title, author, subject or isbn')
 
 
 class BookSearchForm(forms.Form):
-
     title = forms.CharField(required=False, label="Title")
     author = forms.CharField(required=False, label="Author")
     date_published_start = forms.DateField(
