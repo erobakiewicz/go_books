@@ -3,6 +3,7 @@
 {% load static %}
 
 {% block content %}
+        <div class="container-fluid main-container">
     <form method="post" name="search_books" novalidate>
         {% csrf_token %}
         <div class="row">
@@ -12,7 +13,7 @@
             </div>
         </div>
     </form>
-
+<br>
     <h1 class="list-group-item active">Imported books:</h1>
     <ul class="list-group">
         {% for book in imported_books %}
@@ -28,5 +29,5 @@
             </li>
         {% endfor %}
     </ul>
-
+        </div>
 {% endblock content %}

@@ -5,18 +5,16 @@
     <meta charset="UTF-8">
     <title>Add book</title>
 </head>
-<body>
 {% block content %}
-
-    <form method="post">
-        {% csrf_token %}
-        <div class="row">
-            <div class="col-6">
-                {{ form|crispy }}
-                <input type="submit" value="save" class="btn btn-primary">
+    <div class="container-fluid main-container">
+        <form method="post">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-6">
+                    {{ form|crispy }}
+                    <input type="submit" value="save" class="btn btn-primary">
+                </div>
             </div>
-        </div>
-    </form>
+        </form>
+    </div>
 {% endblock content %}
-</body>
-</html>

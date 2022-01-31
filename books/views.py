@@ -85,21 +85,20 @@ class ImportBooks(FormView):
         if form.is_valid():
             data = self.get_form_kwargs().get("data")
             google_api = GoogleBooksAPIConnector(data)
-            results = self.get_formatted_results(google_api.get_books_list())
-            for obj in results:
-                serializer = BookSerializer(data=obj)
-                serializer.is_valid(raise_exception=True)
-                imported_book, created = Book.objects.get_or_create(**serializer.validated_data)
-                if created:
-                    self.imported_books.append(imported_book)
+            if results := self.get_formatted_results(google_api.get_books_list()):
+                for obj in results:
+                    serializer = BookSerializer(data=obj)
+                    serializer.is_valid(raise_exception=True)
+                    imported_book, created = Book.objects.get_or_create(**serializer.validated_data)
+                    if created:
+                        self.imported_books.append(imported_book)
             return render(request, "importer.html", self.get_context_data())
         else:
             return self.form_invalid(form)
 
     def get_formatted_results(self, results):
-        if results:
-            return [self.get_book_dict(item) for item in results if self.get_book_dict(item)]
-        return None
+        if results.get("totalItems") != 0:
+            return [self.get_book_dict(item) for item in results.get("items") if self.get_book_dict(item)]
 
     def get_book_dict(self, item):
         book_info = item.get('volumeInfo')
