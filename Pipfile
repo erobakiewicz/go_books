@@ -14,6 +14,7 @@ django-filter = "*"
 whitenoise = "*"
 factory-boy = "*"
 django-crispy-forms = "*"
+gunicorn = "*"
 
 [dev-packages]
 
